@@ -1,0 +1,881 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1257">
+<title>How to use WinInet FTPCommand function from Visual Basic</title>
+</head>
+
+<body>
+
+<p><b><font face="Verdana">How to use WinInet FTPCommand function from Visual 
+Basic</font></b></p>
+
+<p><font face="Verdana" size="2">by <a target="_blank" href="http://vb.mod.lv">Zintis Petersons</a></font></p>
+<p><font face="Verdana" size="2"><span class="clsInfo">Download the code for 
+this article: </span><a href="vbftpcmd.exe">vbftpcmd.exe</a> (43,2 Kb)</font></p>
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1" height="70">
+  <tr>
+    <td width="100%" bgcolor="#CDCDCD" height="70">
+    <b><font face="Verdana" size="2">SUMMARY</font></b><font face="Verdana" size="2"><b>:</b> This article includes some background information on 
+    the Microsoft Win32 Internet Application Programming Interface (WinInet 
+for short) and 
+the File Transfer Protocol (FTP) and then moves into 
+the use of FTPCommand function.</font></td>
+  </tr>
+</table>
+<h4 class="dtH1"><font face="Verdana" size="2">Contents</font></h4>
+<h4 class="dtH1"><span style="font-weight: 400"><font face="Verdana" size="2">
+<a target="_self" href="#Introduction">Introduction</a></font><br>
+<font face="Verdana" size="2">
+<a href="#WinInet Overview">WinInet 
+Overview</a><br>
+<a href="#FTP basics">FTP basics</a><br>
+<a href="#FTPCommand function description">FTPCommand function description</a></font><br>
+<font face="Verdana" size="2"><a href="#FTPCommand function sampe application">FTPCommand function sampe application</a></font></span><br>
+<font face="Verdana" size="2"><span style="font-weight: 400">
+<a href="#Conclusion">Conclusion</a></span></font></h4>
+<hr>
+<h2 class="dtH1"><font face="Verdana" size="3"><a name="Introduction">Introduction</a></font></h2>
+<p><font face="Verdana" size="2">The Microsoft Win32 Internet Application 
+Programming Interface (WinInet) allows you to quickly create Internet-aware applications using a wealth of 
+functions for working with HTTP, FTP, and Gopher protocols. Without the WinInet, you 
+would be overwhelmed with having to know the specifics of HTTP, TCP/IP, FTP, 
+Windows® Sockets, and so on. Fortunately, the WinInet API makes life 
+significantly easier.</font></p>
+<p><font face="Verdana" size="2">Althougt there is a good documentation for 
+almoust all WinInet functions, description of the FTPCommand function is very 
+limited. This article provides some background information and shows you how to 
+use this powerful function. A sample application (called VBFTPCommand) implements FTP connection, download, and 
+    upload using the WinInet FTP functions (including FTPCommand) from Visual Basic. You can do exciting things with 
+FTPCommand, so I encourage you to read 
+on for some ideas and examples of what can be done.</font></p>
+<p>&nbsp;</p>
+<p><b><font face="Verdana">
+<a name="WinInet Overview">WinInet 
+Overview</a></font></b></p>
+<p><font face="Verdana" size="2">Somebody can ask: <i>&quot;Why should I use WinInet 
+and FTPCommand function when I can use Windows Sockets Application Programming 
+Interface?&quot;</i> The answer is easy - WinInet is a high level interface to the more complicated 
+underlying Internet protocols (including HTTP, FTP, and Gopher). In the 
+International Organization for Standardization Open Systems Interconnection (ISO/OSI) 
+model, WinInet operates at the session layer (see Figure 1). WinInet handles 
+programming Windows Sockets (Winsock), TCP/IP, and Internet protocols.</font></p>
+<p class="fig" align="center"><font face="Verdana"><img alt src="wininet.gif" border="0" width="454" height="722"></font></p>
+<p class="fig" align="center"><font size="2" face="Verdana"><b>Figure 1</b> 
+WinInet and the OSI Model</font></p>
+<p class="fig" align="left"><font face="Verdana" size="2">WinInet allows 
+your application to act as an HTTP, FTP, or Gopher client without its having to 
+understand or, more importantly, keep up with the ever-evolving protocol 
+standards.  If you use WinInet in your applications, when standards change you 
+can let WinInet worry about the changes while your interface to the protocol 
+remains the same. The Windows-based application calls into 
+WinInet.dll. WinInet is then responsible for contacting the server and receiving 
+a response. Once WinInet receives the response, the application can begin using 
+the API - simple as that. </font></p>
+
+<p>&nbsp;</p>
+
+<p><b><font face="Verdana"><a name="FTP basics">FTP basics</a></font></b></p>
+
+<p>
+
+<font face="Verdana" size="2">If other WinInet FTP functions doesn't require FTP 
+(<em style="font-style: normal">File Transfer Protocol) understanding, then 
+FTPCommand function does.</em><span style="font-style: normal"><em> </em></span>If you are familiar with the FTP protocol, you can skip this section and go directly to <a href="2.htm">FTPCommand function description</a>.</font></p>
+<p align="left"><font face="Verdana" size="2">FTP </font><span class="clsBlurb"><font face="Verdana" size="2"> 
+is a core protocol in the IP world </font></span><font face="Verdana" size="2">
+to quickly transfer files between your hard drive and a remote server. Typically 
+a site on the Internet stores a number of files (they could be application 
+executables, graphics, or audio clips, for example), and runs an FTP server 
+application that waits for transfer requests. To download a file to your own 
+system, you run an FTP client application that connects to the FTP server, and 
+request a file from a particular directory or folder. Files can be uploaded to 
+the FTP server, if appropriate access is granted.</font></p>
+<p align="left"><font face="Verdana" size="2">The following model may be diagrammed for an FTP 
+service.</font></p>
+<p align="center"><img border="0" src="FTPservice.gif" width="319" height="149"></p>
+<p align="center"><font size="2" face="Verdana"><b>
+Figure 2</b> FTP service</font></p>
+<p align="left">
+<font face="Verdana" size="2">According to
+<a target="_blank" href="http://www.w3.org/Protocols/rfc959/">RFC959</a> any FTP 
+session between FTP server and FTP client uses two connections (see Figure 2):</font></p>
+<blockquote>
+  <ol>
+    <li>
+  <p align="left"><font face="Verdana" size="2"><b><a name="control connection">control connection</a></b> - the communication path between the FTP client and 
+  FTP 
+  server for the exchange of commands (like
+  PWD,
+  RETR etc.) and FTP server replies. A 
+  reply is an acknowledgment (positive or negative) sent from server to user in 
+  response to FTP commands. The general form of a reply is a completion 
+  code (including error codes) followed by a text string. The codes are 
+  for use by programs and the text is usually intended for human users.<br>
+  <br>
+  <i>For example:</i> Let's issue <b>HELP</b> command to know whitch commands are 
+  supported by the FTP server. </font></p>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="64%" id="AutoNumber2" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%"><font face="Courier New" size="2"><b><br>
+        HELP</b></font><p><b><font face="Courier New" size="2">214-Supported 
+        Commands :<br>
+        214-PORT STOR APPE RETR CWD<br>
+        214-PWD XPWD USER PASS LIST<br>
+        214-NLST TYPE SYST QUIT DELE<br>
+        214-SIZE REST RNFR RNTO XMKD<br>
+        214-MKD RMD ABOR PASV NOOP<br>
+        214-CDUP SITE HELP STAT STOU*<br>
+        214-MDTM STRU SMNT XCUP ACCT<br>
+        214-ALLO REIN MODE XRMD XDEL<br>
+        214-<br>
+        214-Special Commands :<br>
+        214-SITE MSG<br>
+        214-SITE PSWD<br>
+        214-SITE ZONE<br>
+        214-SITE WHO**<br>
+        214-SITE CHAT**<br>
+        214-(* not implemented)<br>
+        214-(** restricted)<br>
+        214 [End of Help].</font></b><font face="Courier New" size="2"><b><br>
+        &nbsp;</b></font></td>
+      </tr>
+    </table>
+  <p align="left"><font face="Verdana" size="2">In this case server responded 
+  with reply <i>214, Help message</i>. Note that data 
+  connection in this case is not envolved.<br>
+  <br>
+  Control connection follows the Telnet Protocol. It uses port 20 and may be 
+  used in either direction (for sending commands to server and getting back 
+  server replies).</font></p>
+    </li>
+    <li>
+  <p align="left"><font face="Verdana" size="2"><b><a name="data connection">data connection</a></b> - A connection over which data is transferred. The data transferred may be a part of a file, an 
+  entire file or a number of files.</font></p>
+  <p align="left"><font face="Verdana" size="2"><i>For example:</i> Let's try 
+  another command, <b>RETR</b>, and download some data.</font></p>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="64%" id="AutoNumber4" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%"><b><font face="Courier New" size="2"><br>
+        RETR setup.exe <br>
+        200 Port command successful.<br>
+        150 Opening data connection for setup.exe (22528 bytes).<br>
+        226 File sent ok.<br>
+        &nbsp;</font></b></td>
+      </tr>
+    </table>
+  <p align="left"><font face="Verdana" size="2">In this case we sent FTP command
+  <b>RETR</b> by control connection and got some replies from the FTP server 
+  about its state. Note the second FTP server reply <i>150 Opening data connection for setup.exe (22528 bytes)</i>.
+  Data file <i>setup.exe</i> was downloaded by data connection.<br>
+  <br>
+  Data connection usually (but not necessarily) uses port 21 and need not exist all of the time.</font></p>
+    </li>
+  </ol>
+</blockquote>
+<p align="left"><font size="2" face="Verdana">Now, when we are familiar with basic idea of FTP 
+basics, we can go to the next section and look how <a href="3.htm">WinInet 
+FTPCommand function fits in this model</a>.</font></p>
+
+<p>&nbsp;</p>
+
+<p><b><font face="Verdana"><a name="FTPCommand function description">FTPCommand function description</a></font></b></p>
+
+<p><font face="Verdana" size="2">From the previous section we can divide all FTP 
+commands in two groups:</font></p>
+
+<blockquote>
+
+<p><font face="Verdana" size="2">1) FTP commands that maintains server state (<i>for 
+example</i> REST, PWD etc.)<br>
+2) FTP commands that sends or receives data files (<i>for example</i> RETR, APPE 
+etc.)</font></p>
+
+</blockquote>
+
+<p><font face="Verdana" size="2">What is the difference of these groups? First 
+group doesn't use the <a href="2.htm#data connection">data connection</a>. Before we look at how FTPCommand function acts for 
+each group of the FTP commands, let's look at the FTPCommand function description.</font></p>
+
+<p>
+  <font face="Verdana" size="2">FTPCommand function in VisualBasic can be declared as 
+  follows:</font></p>
+    <pre class="clsSyntax"><font face="Courier New" size="2"><font color="#000080">Public Declare Function</font> FtpCommand <font color="#000080">Lib</font> &quot;wininet.dll&quot; <font color="#000080">Alias</font> &quot;FtpCommandA&quot; _
+  (<font color="#000080">ByVal</font> hConnect As Long, _
+ <font color="#000080">ByVal</font> fExpectResponse <font color="#000080">As Boolean</font>, <font color="#000080">_
+ ByVal</font> dwFlags <font color="#000080">As Long</font>,  _
+  <font color="#000080">ByVal</font> lpszCommand <font color="#000080">As String</font>, _
+ <font color="#000080">ByVal</font> lContext <font color="#000080">As Long</font>, _
+ phFtpCommand <font color="#000080">As Long</font>) <font color="#000080">_
+</font></font><font color="#000080" face="Courier New" size="2">As Boolean</font></pre>
+  <p class="clsRef"><font face="Verdana" size="2">where parameters are:</font></p>
+  <blockquote>
+    <dl>
+      <dt><font face="Verdana" size="2"><i>hConnect</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[in]&nbsp;a 
+      handle returned from a call to function
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/internetconnect.asp">InternetConnect</a>. </font> </dd>
+      <dt>&nbsp;</dt>
+      <dt><font face="Verdana" size="2"><i>fExpectResponse</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[in]&nbsp;boolean value that indicates whether or not the application 
+      expects data from the FTP server by <a href="2.htm#data connection">data connection</a>. This must be set to TRUE if a 
+      data is expected, or FALSE otherwise.<br>
+      <br>
+      If fExpectResponse 
+      is TRUE, a data response is expected, and the application can call the
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetReadFile.asp">
+      InternetReadFile</a><b>
+      </b>function to read the actual data.</font></dd>
+      <dt>&nbsp;</dt>
+      <dt><font face="Verdana" size="2"><i>dwFlags</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[in]&nbsp;value that contains the flags that control 
+      this function. This can be set to one of the following values: </font>
+    <dl>
+      <dd>&nbsp;<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#CDCDCD" width="68%" id="AutoNumber17" height="135">
+        <tr>
+          <td width="50%" align="center" height="21"><b>
+          <font size="2" face="Verdana">Value</font></b></td>
+          <td width="50%" align="center" height="21"><b>
+          <font size="2" face="Verdana">Description</font></b></td>
+        </tr>
+        <tr>
+          <td width="50%" height="48"><font face="Verdana" size="2"><span class="clsLiteral">FTP_TRANSFER_TYPE_ASCII</span></font></td>
+          <td width="50%" height="48"><font face="Verdana" size="2">Transfers the file using FTP's ASCII (Type A) transfer method. 
+        Control and formatting information is converted to local equivalents.
+        </font>
+          </td>
+        </tr>
+        <tr>
+          <td width="50%" height="64"><font face="Verdana" size="2"><span class="clsLiteral">FTP_TRANSFER_TYPE_BINARY</span>
+        </font> </td>
+          <td width="50%" height="64"><font face="Verdana" size="2">Transfers the file using FTP's Image (Type I) transfer method. The 
+        file is transferred exactly as it exists with no changes. This is the 
+        default transfer method.</font></td>
+        </tr>
+      </table>
+      </dd>
+        <dt><font face="Verdana" size="2">&nbsp;</font></dt>
+    </dl>
+      </dd>
+      <dt><font face="Verdana" size="2"><i>lpszCommand</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[in]&nbsp;a string value that contains the 
+      FTP command to send to 
+      the FTP server. This command will be send by
+      <a href="2.htm#control connection">control connection</a>. 
+      FTP server replies can be read by
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetGetLastResponseInfo.asp">
+      InternetGetLastResponseInfo</a> function.<br>
+      &nbsp;</font></dd>
+      <dt><font face="Verdana" size="2"><i>dwContext</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[in]&nbsp;long integer value that contains an 
+      application-defined value that is used to identify the application context 
+      in callbacks. Since VisulBasic doesn't support callbacks, we use zero 
+      value, 0.</font></dd>
+      <dt>&nbsp;</dt>
+      <dt><font face="Verdana" size="2"><i>phFtpCommand</i> </font> </dt>
+      <dd><font face="Verdana" size="2">[out]&nbsp;long integer value to a handle that will be created if a 
+      valid <a href="2.htm#data connection">data connection</a> is opened. The <i>fExpectResponse</i> parameter must be 
+      set to TRUE for <i>phFtpCommand</i> to be filled. This handle can be used 
+      by
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetReadFile.asp">
+      InternetReadFile</a> function to read data from
+      <a href="2.htm#data connection">data connection</a>.</font></dd>
+    </dl>
+  </blockquote>
+  <p class="clsRef"><i><font face="Verdana" size="2">Return Value</font></i></p>
+  <blockquote>
+    <p><font face="Verdana" size="2">Returns TRUE if successful, or FALSE otherwise. 
+    To get a specific error message, use Err.LastDllError.</font></p>
+  </blockquote>
+
+<p><font face="Verdana" size="2">Now we can take a closer look on how FTPCommand 
+function works with each group of the FTP commands.</font></p>
+
+    <p><b><font face="Verdana" size="2">FTP commands that maintains server state</font></b></p>
+    <p><font face="Verdana" size="2">This situation happens when we are 
+    maintaining the state of the FTP server and <a href="2.htm#data connection">data connection</a> is not involved.</font></p>
+    <p align="center"><font size="2" face="Verdana">
+    <img border="0" src="FTPcmd1.gif" width="385" height="206"><br>
+    <b>Figure 3</b> FTPCommand in <a href="2.htm#control connection">control connection</a> mode</font></p>
+    <p><font face="Verdana" size="2">Let's look at previous example, when we 
+    issued FTP command <b>HELP</b>.</font></p>
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber2" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%"><font face="Courier New" size="2"><b><br>
+        HELP</b></font><p><b><font face="Courier New" size="2">214-Supported 
+        Commands :<br>
+        214-PORT STOR APPE RETR CWD<br>
+        214-PWD XPWD USER PASS LIST<br>
+        214-NLST TYPE SYST QUIT DELE<br>
+        214-SIZE REST RNFR RNTO XMKD<br>
+        214-MKD RMD ABOR PASV NOOP<br>
+        214-CDUP SITE HELP STAT STOU*<br>
+        214-MDTM STRU SMNT XCUP ACCT<br>
+        214-ALLO REIN MODE XRMD XDEL<br>
+        214-<br>
+        214-Special Commands :<br>
+        214-SITE MSG<br>
+        214-SITE PSWD<br>
+        214-SITE ZONE<br>
+        214-SITE WHO**<br>
+        214-SITE CHAT**<br>
+        214-(* not implemented)<br>
+        214-(** restricted)<br>
+        214 [End of Help].<br>
+&nbsp;</font></b></td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+    <font size="2" face="Verdana">What we are doing, is, maintaining the state of 
+    the FTP server (see Figure 3, 1):</font></p>
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber5" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+      <font face="Courier New" size="2"><br>
+&nbsp;<font color="#000080">Dim bRet</font> As <font color="#000080">Boolean<br>
+&nbsp;Dim</font> hFile <font color="#000080">As Long</font>&nbsp;<br>
+      <font color="#000080">&nbsp;Dim</font> strCommand <font color="#000080">As 
+      String</font>&nbsp;</font><p>
+      <font face="Courier New" size="2">&nbsp;strCommand = &quot;HELP&quot;<br>
+&nbsp;bRet = FtpCommand(hConnection, <font color="#000080">False</font>, 
+      FTP_TRANSFER_TYPE_ASCII, strCommand, 
+0, hFile)<br>
+&nbsp;</font></td>
+      </tr>
+    </table>
+  </blockquote>
+    <p><font size="2" face="Verdana">If any WinInet function returns FALSE it 
+    means that function failed and you need to know what is out of order. To 
+    know it you must check out value of Err.LastDllError and if this value is 
+    more than 12000 it is probably WinInet error. About handling WinInet errors 
+    I recommend you to read
+    <a target="_blank" href="http://www.vbip.com/wininet/wininet_errors.asp">Handling WinInet API errors</a>. </font></p>
+<p><font face="Verdana" size="2">For us it is important to know that we can 
+retrieve actual FTP server reply by using
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetGetLastResponseInfo.asp">
+      InternetGetLastResponseInfo</a><b>
+      
+      </b>function (see Figure 3, 2). This is a little bit tricky, because first 
+of all we'll need to allocate buffer for reading FTP server reply:</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber6" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Courier New" size="2"><br>
+      <font color="#000080">&nbsp;Dim</font> dwIntError <font color="#000080">As Long</font>, dwLength
+<font color="#000080">As Long</font><br>
+&nbsp;<font color="#000080">Dim</font> strBuffer <font color="#000080">As String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp;InternetGetLastResponseInfo dwIntError, vbNullString, dwLength<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+    <font size="2" face="Verdana">Variable </font>
+      <font face="Courier New" size="2">
+    dwLength</font><font face="Verdana" size="2"> now holds allocated buffer 
+    size of the server reply and we can read actual server reply into </font>
+      <font face="Courier New" size="2">
+    strBuffer</font><font face="Verdana" size="2">:</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber7" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Verdana" size="2"><br>
+      </font>
+      <font face="Courier New" size="2">
+&nbsp;strBuffer = String(dwLength + 1, 0)<br>
+&nbsp;InternetGetLastResponseInfo dwIntError, strBuffer, dwLength<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+      <p><b><font face="Verdana" size="2">FTP commands that sends or receives 
+      data files</font></b></p>
+      <p><font face="Verdana" size="2">In this case issued FTP command opens 
+      data connection.</font></p>
+    <p align="center">
+    <img border="0" src="FTPcmd2.gif" width="385" height="247"></p>
+    <p align="center"><font face="Verdana" size="2"><b>Figure 4</b> 
+    FTPCommand in <a href="2.htm#data connection">data connection</a> mode</font></p>
+    <p><font face="Verdana" size="2">Let's look at previous example, when we 
+    downloaded data file <i>setup.exe</i>.</font></p>
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber8" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%"><b><font face="Courier New" size="2"><br>
+&nbsp;RETR setup.exe <br>
+        &nbsp;200 Port command successful.<br>
+        &nbsp;150 Opening data connection for setup.exe (22528 bytes).<br>
+        &nbsp;226 File sent ok.<br>
+&nbsp;</font></b></td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+    <font size="2" face="Verdana">Now we are issuing FTP command <b>RETR</b> to 
+    download the data file <i>setup.exe</i>. By doing this, we are opening 
+    <a href="2.htm#data connection">data 
+    connection</a> (see Figure 4, 1).</font></p>
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber9" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+      <font face="Courier New" size="2"><br>
+&nbsp;<font color="#000080">Dim bRet</font> As <font color="#000080">Boolean<br>
+&nbsp;Dim</font> hFile <font color="#000080">As Long</font>&nbsp;<font color="#000080"><br>
+&nbsp;Dim</font> strCommand <font color="#000080">As String</font>&nbsp;</font><p>
+      <font face="Courier New" size="2">&nbsp;strCommand = &quot;RETR setup.exe&quot;<br>
+&nbsp;bRet = FtpCommand(hConnection, <font color="#000080">False</font>, 
+      FTP_TRANSFER_TYPE_BINARY, 
+      strCommand, 
+0, hFile)<br>
+&nbsp;</font></td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+    <font face="Verdana" size="2">Optionally we can read the the FTP server response 
+    (see Figure 4, 2).</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber10" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Courier New" size="2"><br>
+      <font color="#000080">&nbsp;Dim</font> dwIntError <font color="#000080">As Long</font>, dwLength
+<font color="#000080">As Long</font><br>
+&nbsp;<font color="#000080">Dim</font> strBuffer <font color="#000080">As String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp;InternetGetLastResponseInfo dwIntError, vbNullString, dwLength<br>
+&nbsp;strBuffer = String(dwLength + 1, 0)<br>
+&nbsp;InternetGetLastResponseInfo dwIntError, strBuffer, dwLength<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+    <font size="2" face="Verdana">Now we  start to receive actual data file 
+    (see Figure 4, 3a). First we'll open local data file where to store received 
+    data.</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber11" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Verdana" size="2"><br>
+      </font>
+      <font face="Courier New" size="2">
+&nbsp; <font color="#000080">Dim</font> bDoLoop <font color="#000080">As Boolean</font><br>
+&nbsp; <font color="#000080">Dim</font> sReadBuffer <font color="#000080">As 
+      String * 2048</font><br>
+&nbsp; <font color="#000080">Dim</font> lNumberOfBytesRead <font color="#000080">
+      As Long</font><br>
+&nbsp; <font color="#000080">Dim</font> sBuffer <font color="#000080">As String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp; <font color="#000080">Dim</font> szFileLocal <font color="#000080">As 
+      String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp; szFileLocal = &quot;setup.exe&quot;<br>
+      &nbsp;<br>
+&nbsp; <font color="#000080">Dim</font> F1 <font color="#000080">As Integer</font><br>
+&nbsp; F1 = FreeFile<br>
+&nbsp; <font color="#000080">Open</font> szFileLocal
+<font color="#000080">For Binary As</font> F1<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+      <font face="Verdana" size="2">
+      Now we'll loop throught all incoming data and save them into local file.</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber12" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Verdana" size="2">
+&nbsp;&nbsp;<br>
+      </font>
+      <font face="Courier New" size="2">
+&nbsp; bDoLoop = <font color="#000080">True</font><br>
+&nbsp; <font color="#000080">While</font> bDoLoop<br>
+&nbsp;&nbsp; sReadBuffer = vbNullString<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+      <font face="Verdana" size="2">
+      Note that
+      <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetReadFile.asp">
+      InternetReadFile</a> function uses </font>
+      <font face="Courier New" size="2">
+      hFile </font>
+      <font face="Verdana" size="2">
+      variable received from FTPCommand function to read actual data from the
+      <a href="2.htm#data connection">data 
+      conection</a>.</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber13" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp; bDoLoop = InternetReadFile(hFile, sReadBuffer, Len(sReadBuffer), 
+lNumberOfBytesRead)<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+      <font face="Verdana" size="2">
+      Lets save actual data and read the next portion.</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber14" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Courier New" size="2">
+&nbsp;&nbsp;<br>
+&nbsp; <font color="#000080">&nbsp;Put</font> F1, , sReadBuffer<br>
+&nbsp;<font color="#000080">&nbsp; If Not CBool</font>(lNumberOfBytesRead) 
+<font color="#000080">Then</font> bDoLoop = <font color="#000080">False</font><br>
+&nbsp; <font color="#000080">Wend</font><br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p align="left">
+      <font face="Verdana" size="2">
+      All data are received and we  close local data file.</font></p>
+
+    <blockquote>
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="76%" id="AutoNumber15" bgcolor="#CDCDCD" height="60">
+      <tr>
+        <td width="100%">
+
+<p>
+      <font face="Courier New" size="2">
+      <br>
+&nbsp; <font color="#000080">Close</font> F1<br>
+&nbsp;</font></p>
+
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+    <p><font face="Verdana" size="2">But what if you want to upload data to the 
+    FTP server (see Figure 4, 3b)? You have to read the data fom the local data file 
+    and send them by using
+    <a target="_blank" href="http://msdn.microsoft.com/workshop/networking/wininet/reference/functions/InternetWriteFile.asp">InternetWriteFile</a> 
+    function.</font></p>
+<p><font face="Verdana" size="2">Now, I guess the theory is enought, lets look 
+at <a href="4.htm">sample application</a>.</font></p>
+
+<p>&nbsp;</p>
+
+<p><font face="Verdana"><b><a name="FTPCommand function sampe application">FTPCommand function sampe application</a></b></font></p>
+
+<p><font face="Verdana" size="2">My example application is based on <a href="http://support.microsoft.com/default.aspx?scid=kb;en-us;Q175179">SAMPLE: 
+VBFTP.EXE: Implementing FTP Using WinInet API from VB (Q175179)</a>. I modiefied 
+it a little bit to  download a file from FTP server by sending <b>RETR</b> command. 
+The example 
+also shows how to check if FTP server supports resume 
+downloads, however doesn't implements it. </font></p>
+<p><font face="Verdana" size="2">I did the following.</font></p>
+<p><font face="Verdana" size="2">First of all we'll add <b>FTPCommand</b> 
+function 
+declaration to the module <b>modWinInet</b>:</font></p>
+<div align="center">
+  <center>
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="86%" id="AutoNumber2" height="76">
+    <tr>
+      <td width="100%" bgcolor="#CDCDCD" height="76">
+      <p align="left"><font face="Courier New" size="2"><font color="#000080">Public Declare 
+  Function</font> FtpCommand <font color="#000080">Lib</font> &quot;wininet.dll&quot;
+  <font color="#000080">Alias</font> &quot;FtpCommandA&quot; _<br>
+  (<font color="#000080">ByVal</font> hConnect As Long, <font color="#000080">
+  ByVal</font> fExpectResponse <font color="#000080">As Boolean</font>,
+  <font color="#000080">ByVal</font> dwFlags <font color="#000080">As Long</font>, 
+  _<br>
+  <font color="#000080">ByVal</font> lpszCommand <font color="#000080">As String</font>,
+  <font color="#000080">ByVal</font> lContext <font color="#000080">As Long</font>, 
+  phFtpCommand <font color="#000080">As Long</font>) <font color="#000080">As 
+  Boolean</font></font></td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p><font face="Verdana" size="2">Secondly I added a small function </font>
+
+<font face="Courier New" size="2">GetFTPServerReply() </font><font face="Verdana" size="2">
+in the form <b>fmVBFTPJR</b> that reads the FTP server reply:</font></p>
+<div align="center">
+  <center>
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="86%" id="AutoNumber19">
+    <tr>
+      <td width="100%" bgcolor="#CDCDCD">
+
+<p>
+
+<font face="Courier New" size="2"><font color="#000080"><br>
+Private Function </font>
+GetFTPServerReply() <font color="#000080">As String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">&nbsp; <font color="#000080">Dim</font> dwIntError <font color="#000080">As Long</font>, dwLength
+<font color="#000080">As Long</font><br>
+&nbsp; <font color="#000080">Dim</font> strCommand <font color="#000080">As String</font></font></p>
+
+<p>
+      <font face="Courier New" size="2">
+<font color="#008000">&nbsp; &#39; We are reading server reply from the <b>control connection</b></font><br>
+&nbsp; InternetGetLastResponseInfo dwIntError, vbNullString, dwLength<br>
+&nbsp; strCommand = String(dwLength + 1, 0)<br>
+&nbsp; InternetGetLastResponseInfo dwIntError, strCommand, dwLength<br>
+<font color="#000080">&nbsp;  </font>GetFTPServerReply = strCommand</font></p>
+
+<p><font face="Courier New" size="2" color="#000080">End Function<br>
+&nbsp;</font></p>
+      </td>
+    </tr>
+  </table>
+  </center>
+</div>
+
+<p><font face="Verdana" size="2">Finally I modified </font><b><font size="2" face="Courier New">cmdGet_Click()</font></b><font face="Verdana" size="2"> 
+function in the form <b>fmVBFTPJR</b>. Originally this function looked like this:</font></p>
+<div align="center">
+  <center>
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="86%" id="AutoNumber3">
+    <tr>
+      <td width="100%" bgcolor="#CDCDCD">
+
+<p>
+
+<font face="Courier New" size="2"><font color="#000080"><br>
+Private Sub</font> cmdGet_Click()<br>
+&nbsp;<font color="#000080">Dim bRet</font> As <font color="#000080">Boolean</font><br>
+&nbsp;<font color="#000080">Dim</font> szFileRemote <font color="#000080">As String</font>, szDirRemote
+<font color="#000080">As String</font>, szFileLocal <font color="#000080">As String</font><br>
+&nbsp;<font color="#000080">Dim</font> szTempString <font color="#000080">As String</font><br>
+&nbsp;<font color="#000080">Dim</font> nPos <font color="#000080">As Long</font>, nTemp
+<font color="#000080">As Long</font><br>
+&nbsp;<font color="#000080">Dim</font> nodX <font color="#000080">As Node</font></font></p>
+<p>
+
+<font face="Courier New" size="2">&nbsp;<font color="#000080">Set</font> nodX = TreeView1.SelectedItem</font></p>
+<p>
+
+<font face="Courier New" size="2">&nbsp;<font color="#000080">If</font> bActiveSession
+<font color="#000080">Then</font></font></p>
+<p>
+
+<font face="Courier New" size="2">&nbsp; <font color="#000080">If</font> nodX
+<font color="#000080">Is Nothing Then</font><br>
+&nbsp;&nbsp; MsgBox &quot;Please select the item to GET!&quot;<br>
+&nbsp;&nbsp; <font color="#000080">Exit Sub<br>
+&nbsp; End If</font></font></p>
+<p><font face="Courier New" size="2">&nbsp; szTempString = TreeView1.SelectedItem.Text<br>
+&nbsp; szFileRemote = szTempString<br>
+&nbsp; nPos = 0<br>
+&nbsp; nTemp = 0</font></p>
+<p><font face="Courier New" size="2">&nbsp; <font color="#000080">Do</font><br>
+&nbsp;&nbsp; nTemp = InStr(1, szTempString, &quot;/&quot;, vbBinaryCompare)<br>
+&nbsp;&nbsp; If nTemp = 0 <font color="#000080">Then Exit Do</font><br>
+&nbsp;&nbsp; szTempString = Right(szTempString, Len(szTempString) - nTemp)<br>
+&nbsp;&nbsp; nPos = nTemp + nPos<br>
+&nbsp; <font color="#000080">Loop</font></font></p>
+<p><font face="Courier New" size="2">&nbsp;&nbsp;szDirRemote = Left(szFileRemote, nPos)<br>
+&nbsp; szFileRemote = Right(szFileRemote, Len(szFileRemote) - nPos)<br>
+&nbsp; szFileLocal = File1.Path&nbsp;</font></p>
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber4">
+        <tr>
+          <td width="100%" bgcolor="#FF0000"><font face="Courier New" size="2">&nbsp; rcd szDirRemote<br>
+&nbsp; bRet = FtpGetFile(hConnection, szFileRemote, szFileLocal &amp; &quot;/&quot; &amp; 
+szFileRemote, False, _<br>
+&nbsp; INTERNET_FLAG_RELOAD, dwType, 0)</font></td>
+        </tr>
+      </table>
+<p><font face="Courier New" size="2">&nbsp; File1.Refresh<br>
+&nbsp; <font color="#000080">If</font> bRet = <font color="#000080">False Then</font> ErrorOut Err.LastDllError, &quot;FtpGetFile&quot;</font></p>
+<p><font face="Courier New" size="2">&nbsp;<font color="#000080">Else</font><br>
+&nbsp; MsgBox &quot;Not in session&quot;<br>
+&nbsp;<font color="#000080">End If</font></font></p>
+<p><font face="Courier New" size="2" color="#000080">End Sub<br>
+&nbsp;</font></p>
+
+      </td>
+    </tr>
+  </table>
+  </center>
+</div>
+
+<p><font face="Verdana" size="2">&nbsp;Code that is shown in red square, was replaced 
+by the following code:</font></p>
+
+<div align="center">
+  <center>
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="86%" id="AutoNumber5">
+    <tr>
+      <td width="100%" bgcolor="#CDCDCD">
+      <font face="Courier New" size="2"><br>
+<font color="#008000">&nbsp; &#39; Originaly szDirRemote contains FTP server name, we don&#39;t need it.<br>
+&nbsp; &#39; This will remove FTP server name from szDirRemote</font><br>
+&nbsp; szDirRemote = Mid(szDirRemote, Len(txtServer.Text) + 1, Len(szDirRemote) - 
+Len(txtServer.Text))<br>
+&nbsp;<br>
+&nbsp; <font color="#000080">Dim</font> hFile <font color="#000080">As Long<br>
+      </font>&nbsp; <font color="#000080">Dim</font> strCommand <font color="#000080">As String</font><br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; Let&#39;s check if FTP server supports RESUME function<br>
+&nbsp; &#39; To do this, we&#39;ll try to set FTP server pointer to 5.</font><br>
+&nbsp; strCommand = &quot;REST 5&quot;<br>
+&nbsp; <font color="#000080">Debug.Print</font> &quot;FTP command &#39;&quot; &amp; 
+      strCommand &amp; &quot;&#39; was sent to FTP server.&quot;<br>
+&nbsp; bRet = FtpCommand(hConnection, <font color="#000080">False</font>, FTP_TRANSFER_TYPE_ASCII, 
+      strCommand, 
+0, hFile)<br>
+<font color="#000080">&nbsp; Debug.Print</font> &quot;FTP server supports RESUME function: &quot; &amp; bRet<br>
+<font color="#008000">&nbsp; &#39; We are reading server reply from the <b>control connection</b></font><br>
+<font color="#000080">&nbsp; Debug.Print</font> &quot;FTP server replied with: &quot; &amp; 
+      vbCrLf &amp; GetFTPServerReply<br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; Let&#39;s reset pointer to 0, so that we download all 
+      data file<br>
+      </font>&nbsp; strCommand = &quot;REST 0&quot;<font color="#008000"><br>
+      </font>&nbsp; bRet = FtpCommand(hConnection, <font color="#000080">False</font>, FTP_TRANSFER_TYPE_ASCII, 
+      strCommand, 
+0, hFile)<br>
+<font color="#008000">&nbsp; &#39; We are reading server reply from the <b>control connection<br>
+      </b></font>
+<font color="#000080">&nbsp; Debug.Print</font> &quot;FTP server replied with: &quot; &amp; 
+      vbCrLf &amp; GetFTPServerReply<br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; We are sending command to retrieve selected file</font><br>
+&nbsp; strCommand = &quot;RETR &quot; &amp; szDirRemote &amp; szFileRemote<br>
+<font color="#000080">&nbsp; Debug.Print</font> &quot;FTP command &#39;&quot; &amp; 
+      strCommand &amp; &quot;&#39; was sent to FTP server.&quot;<br>
+&nbsp; bRet = FtpCommand(hConnection, <font color="#000080">True</font>, dwType, 
+      strCommand, 0, hFile)<br>
+<font color="#008000">&nbsp; &#39; We are reading server reply from the <b>control connection</b></font><br>
+<font color="#000080">&nbsp; Debug.Print</font> &quot;FTP server replied with: &quot; &amp; 
+      vbCrLf &amp; GetFTPServerReply<br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; Now we are receiving file from the <b>data connection</b></font><br>
+&nbsp; <font color="#000080">Dim</font> bDoLoop <font color="#000080">As Boolean</font><br>
+&nbsp; <font color="#000080">Dim</font> sReadBuffer <font color="#000080">As String * 2048</font><br>
+&nbsp; <font color="#000080">Dim</font> lNumberOfBytesRead <font color="#000080">As Long</font><br>
+&nbsp; <font color="#000080">Dim</font> sBuffer <font color="#000080">As String</font><br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; Open local file for writing</font><br>
+&nbsp; <font color="#000080">Dim</font> F1 <font color="#000080">As Integer</font><br>
+&nbsp; F1 = FreeFile<br>
+&nbsp; <font color="#000080">Open</font> szFileLocal &amp; &quot;\&quot; &amp; szFileRemote
+<font color="#000080">For Binary As</font> F1<br>
+&nbsp;&nbsp;<br>
+&nbsp; bDoLoop = <font color="#000080">True</font><br>
+&nbsp; <font color="#000080">While</font> bDoLoop<br>
+&nbsp; sReadBuffer = vbNullString<br>
+<font color="#008000">&nbsp; &#39; Read data from <b>data connection</b></font><br>
+&nbsp; bDoLoop = InternetReadFile(hFile, sReadBuffer, Len(sReadBuffer), 
+lNumberOfBytesRead)<br>
+<font color="#008000">&nbsp; &#39; Save received data to local file</font><br>
+&nbsp; <font color="#000080">Put</font> F1, , sReadBuffer<br>
+&nbsp;<font color="#000080"> If Not CBool</font>(lNumberOfBytesRead) 
+<font color="#000080">Then</font> bDoLoop = <font color="#000080">False</font><br>
+&nbsp; <font color="#000080">Wend</font><br>
+&nbsp;<br>
+<font color="#008000">&nbsp; &#39; Close local file</font><br>
+&nbsp; <font color="#000080">Close</font> F1<br>
+&nbsp;</font></td>
+    </tr>
+  </table>
+  </center>
+</div>
+
+<p>&nbsp;</p>
+
+<p><font face="Verdana"><b><a name="Conclusion">Conclusion</a></b></font></p>
+<p align="left"><font face="Verdana" size="2">Althought the FTPCommand function provides you with 
+greate flexibility and control over the FTP session, it is important to 
+understand the capability and limitation of each of the different Internet 
+technologies. At the lowest level, you could use the Microsoft Winsock Control 
+to send commands directly to FTP server. The sequence and syntax of the 
+commands you send to the server would have to follow the specification of the 
+FTP protocol. The WinInet FTP API wraps the socket code and most low-level FTP 
+commands and provides a set of much simpler task-oriented APIs that do not 
+require detailed knowledge of FTP protocol. However, there is a chance that some 
+FTP servers use FTP commands not implemented by WinInet functions. If this happens, you 
+have to use FTPCommand function or the Microsoft Winsock Control to communicate with the server 
+directly at the protocol level.</font></p>
+<hr>
+<p><font face="Verdana" size="2"><b>For related articles read:</b></font></p>
+<p><font face="Verdana" size="2">
+<a target="_blank" href="http://www.vbip.com/wininet/wininet_connection_01.asp">
+Establishing and breaking Internet connection</a>,<br>
+<a target="_blank" href="http://www.vbip.com/winsock/winsock_ftp_ref_01.asp">FTP 
+Quick Reference</a>,<br>
+<a href="http://www.vbip.com/wininet/wininet_errors.asp" target="_blank">
+Handling WinInet API errors</a>,<br>
+<a target="_blank" href="http://www.vbip.com/wininet/wininet_url_class_01.asp">
+Handle URLs with WinInet API</a>,<br>
+<a target="_blank" href="http://www.vbip.com/winsock/winsock_ftp_01.asp">
+Practical introduction to the File Transfer Protocol for Visual Basic developers</a>,<br>
+<a href="http://support.microsoft.com/default.aspx?scid=kb;en-us;Q175179">
+SAMPLE: VBFTP.EXE: Implementing FTP Using WinInet API from VB (Q175179)</a>.</font></p>
+<p><font face="Verdana" size="2"><b>For background information look at:</b></font></p>
+<p><font size="2" face="Verdana">FILE TRANSFER PROTOCOL (FTP)
+<a href="http://www.w3.org/Protocols/rfc959/">RFC959</a>,<br>
+<a href="http://msdn.microsoft.com/library/default.asp?url=/workshop/networking/wininet/wininet.asp">
+Microsoft Win32 Internet Functions</a></font><br>
+&nbsp;</p>
+
+<p align="center">&nbsp;</p>
+
+</body>
+
+</html>
